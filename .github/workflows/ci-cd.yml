@@ -65,6 +65,18 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
+      # Wait for MySQL to be ready
+      - name: Wait for MySQL
+        run: |
+          until mysqladmin ping -h"$DB_HOST" --silent; do
+            echo "Waiting for database..."
+            sleep 2
+          done
+
+      # Static analysis before tests
+      - name: Run static analysis
+        run: vendor/bin/phpstan analyse --memory-limit=1G || exit 1
+
       - name: Run migrations
         run: php artisan migrate --force
 
