@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: "Laravel REST API" # This tells GitHub to use that environment's secrets
 
     # CI-only environment variables
     env:
@@ -16,16 +17,18 @@ jobs:
       APP_DEBUG: true
       DB_HOST: 127.0.0.1
       DB_PORT: 3306
-      DB_DATABASE: laravel
-      DB_USERNAME: root
-      DB_PASSWORD: root
+      DB_DATABASE: min-lara-react-app
+      DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+      SEED_EMPLOYEE_PASSWORD: ${{ secrets.SEED_EMPLOYEE_PASSWORD }}
 
     services:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: laravel
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MYSQL_DATABASE: min-lara-react-app
         ports:
           - 3306:3306
         options: >-
@@ -37,6 +40,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Fail-fast if secrets are missing
+        run: |
+          for var in DB_USERNAME DB_PASSWORD SEED_ADMIN_PASSWORD SEED_EMPLOYEE_PASSWORD; do
+            if [ -z "${!var}" ]; then
+              echo "Missing required secret: $var"
+              exit 1
+            fi
+          done
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
