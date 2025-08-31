@@ -30,6 +30,9 @@ COPY --chown=www-data:www-data . /var/www/html
 # Install Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 
+# Ensure bootstrap/cache exists and is writable
+RUN mkdir -p bootstrap/cache && chmod -R 775 bootstrap/cache
+
 # Install Laravel dependencies
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
