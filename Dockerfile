@@ -1,20 +1,21 @@
 # ---------- Build Stage ----------
-FROM php:8.2-cli-alpine AS build
+FROM php:8.2-cli AS build
 
 # Install build dependencies for PHP extensions & Composer
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     git \
     curl \
     zip \
     unzip \
     libpng-dev \
     libzip-dev \
-    oniguruma-dev \
+    libonig-dev \
     libxml2-dev \
     autoconf \
     make \
     g++ \
-    bash
+    bash \
+    --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions needed by Laravel
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
@@ -30,7 +31,8 @@ WORKDIR /app
 COPY . .
 
 # Install dependencies without dev packages
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader \
+    && composer clear-cache
 
 # Ensure bootstrap/cache exists and is writable
 RUN mkdir -p bootstrap/cache && chmod -R 775 bootstrap/cache
@@ -45,6 +47,9 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     --no-install-recommends && rm -rf /var/lib/apt/lists/*
+# Set environment variables for production
+ENV APP_ENV=production \
+    APP_DEBUG=false
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
@@ -59,8 +64,10 @@ COPY --from=build /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
 # Copy application from build stage
 COPY --from=build /app ./
 
-# Set correct permissions
-RUN chown -R www-data:www-data /var/www/html
+# Remove unnecessary files and set correct permissions
+RUN rm -rf /var/www/html/tests /var/www/html/.git /var/www/html/.github /var/www/html/.gitignore /var/www/html/.gitattributes \
+    /var/www/html/README* /var/www/html/CHANGELOG* /var/www/html/*.md \
+    && chown -R www-data:www-data /var/www/html
 
 # Expose port 80
 EXPOSE 80
