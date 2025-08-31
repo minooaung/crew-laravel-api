@@ -54,6 +54,14 @@ ENV APP_ENV=production \
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
+# Point Apache to Laravel's public directory and allow overrides
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf \
+    && sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s|AllowOverride None|AllowOverride All|' /etc/apache2/apache2.conf \
+    && sed -i 's|<Directory /var/www/html>|<Directory /var/www/html/public>|' /etc/apache2/apache2.conf
+
+# Optional: avoid "ServerName" warning
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
 # Set working directory
 WORKDIR /var/www/html
 
