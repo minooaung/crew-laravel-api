@@ -25,14 +25,12 @@ COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /app
 
-# Copy composer files first for better caching
-COPY composer.json composer.lock ./
+
+# Copy all application files (including artisan) before installing dependencies
+COPY . .
 
 # Install dependencies without dev packages
 RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-
-# Copy the rest of the application
-COPY . .
 
 # Ensure bootstrap/cache exists and is writable
 RUN mkdir -p bootstrap/cache && chmod -R 775 bootstrap/cache
