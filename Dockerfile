@@ -38,7 +38,7 @@ RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoload
     && composer clear-cache
 
 # ---------- Runtime Stage ----------
-FROM php:8.2-apache-slim AS runtime
+FROM php:8.2-apache AS runtime
 
 # Install only runtime dependencies
 RUN apt-get update && apt-get install -y \
