@@ -30,12 +30,12 @@ WORKDIR /app
 # Copy all application files (including artisan) before installing dependencies
 COPY . .
 
+# Ensure bootstrap/cache exists and is writable before composer install
+RUN mkdir -p bootstrap/cache && chmod -R 775 bootstrap/cache
+
 # Install dependencies without dev packages
 RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader \
     && composer clear-cache
-
-# Ensure bootstrap/cache exists and is writable
-RUN mkdir -p bootstrap/cache && chmod -R 775 bootstrap/cache
 
 # ---------- Runtime Stage ----------
 FROM php:8.2-apache AS runtime
