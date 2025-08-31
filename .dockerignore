@@ -1,28 +1,45 @@
+# -------------------------
 # Dependencies (installed fresh in image)
+# -------------------------
 vendor/
 node_modules/
 
+# -------------------------
 # Local environment & secrets
+# -------------------------
 .env
 .env.*
+!.env.example   # Keep example env for reference
 
+# -------------------------
 # Git & editor files
+# -------------------------
 .git
 .gitignore
+.gitattributes
+.github/
 .idea/
 .vscode/
 
+# -------------------------
 # Laravel storage & cache
-storage/*.key
-storage/*.log
-storage/framework/
-storage/logs/
+# -------------------------
+storage/*
+!storage/app/public/   # Keep public storage if needed
 bootstrap/cache/
 
+# -------------------------
 # OS / misc
+# -------------------------
 npm-debug.log
+yarn-error.log
 .DS_Store
+Thumbs.db
 
+# -------------------------
 # Tests & docs (not needed in image)
+# -------------------------
 tests/
 *.md
+CHANGELOG*
+README*
