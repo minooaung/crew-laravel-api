@@ -38,17 +38,18 @@ COPY . .
 RUN mkdir -p bootstrap/cache && chmod -R 775 bootstrap/cache
 
 # ---------- Runtime Stage ----------
-FROM php:8.2-apache-alpine
+FROM php:8.2-apache AS runtime
 
 # Install only runtime dependencies
-RUN apk add --no-cache \
-    libpng \
-    libzip \
-    oniguruma \
-    libxml2
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libzip-dev \
+    libonig-dev \
+    libxml2-dev \
+    --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 # Enable Apache mod_rewrite
-RUN sed -i '/LoadModule rewrite_module/s/^#//g' /etc/apache2/httpd.conf
+RUN a2enmod rewrite
 
 # Set working directory
 WORKDIR /var/www/html
@@ -67,4 +68,4 @@ RUN chown -R www-data:www-data /var/www/html
 EXPOSE 80
 
 # Start Apache
-CMD ["httpd", "-D", "FOREGROUND"]
+CMD ["apache2-foreground"]
