@@ -76,7 +76,7 @@ COPY --from=build /app ./
 RUN rm -rf /var/www/html/tests /var/www/html/.git /var/www/html/.github /var/www/html/.gitignore /var/www/html/.gitattributes \
     /var/www/html/README* /var/www/html/CHANGELOG* /var/www/html/*.md \
     && mkdir -p /var/www/html/storage/framework/views \
-    && chown -R www-data:www-data /var/www/html/storage /var/www/html/framework /var/www/html/bootstrap/cache /var/www/html
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html
 
 # Expose port 80
 EXPOSE 80
