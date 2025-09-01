@@ -72,10 +72,11 @@ COPY --from=build /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
 # Copy application from build stage
 COPY --from=build /app ./
 
-# Remove unnecessary files and set correct permissions
+# Remove unnecessary files, ensure cache dirs exist, and set correct permissions
 RUN rm -rf /var/www/html/tests /var/www/html/.git /var/www/html/.github /var/www/html/.gitignore /var/www/html/.gitattributes \
     /var/www/html/README* /var/www/html/CHANGELOG* /var/www/html/*.md \
-    && chown -R www-data:www-data /var/www/html
+    && mkdir -p /var/www/html/storage/framework/views \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/framework /var/www/html/bootstrap/cache /var/www/html
 
 # Expose port 80
 EXPOSE 80
