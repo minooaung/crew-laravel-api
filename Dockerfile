@@ -75,7 +75,7 @@ COPY --from=build /app ./
 # Remove unnecessary files, ensure cache dirs exist, and set correct permissions
 RUN rm -rf /var/www/html/tests /var/www/html/.git /var/www/html/.github /var/www/html/.gitignore /var/www/html/.gitattributes \
     /var/www/html/README* /var/www/html/CHANGELOG* /var/www/html/*.md \
-    && mkdir -p /var/www/html/storage/framework/views \
+    && mkdir -p /var/www/html/storage/framework/views /var/www/html/storage/framework/sessions \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html
 
 # Expose port 80
