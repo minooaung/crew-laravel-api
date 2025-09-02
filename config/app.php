@@ -155,21 +155,25 @@ return [
     |
     */
 
-    'providers' => ServiceProvider::defaultProviders()->merge([
+    'providers' => ServiceProvider::defaultProviders()->merge(array_filter([
         /*
-         * Package Service Providers...
-         */
+        * Package Service Providers...
+        */
+        env('APP_ENV') === 'local'
+            ? NunoMaduro\Collision\Adapters\Laravel\CollisionServiceProvider::class
+            : null,
 
         /*
-         * Application Service Providers...
-         */
+        * Application Service Providers...
+        */
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         Laravel\Sanctum\SanctumServiceProvider::class,
-    ])->toArray(),
+    ]))->toArray(),
+
 
     /*
     |--------------------------------------------------------------------------
