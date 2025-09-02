@@ -6,23 +6,25 @@ services:
         container_name: crew-api
         ports:
             - "8080:80"
-        env_file:
-            - .env
         depends_on:
-            - db
+            db:
+                condition: service_healthy
         volumes:
             - ./storage:/var/www/html/storage
             - ./bootstrap/cache:/var/www/html/bootstrap/cache
+        # Removed env_file — Laravel reads .env internally via phpdotenv
 
     db:
         image: mysql:8.0
         container_name: crew-db
         restart: always
-        environment:
-            MYSQL_DATABASE: min-lara-react-app
-            MYSQL_USER: root
-            MYSQL_PASSWORD: "Platinum01#amo"
-            MYSQL_ROOT_PASSWORD: "Platinum01#amo"
+        env_file:
+            - .env.docker
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
         ports:
             - "3306:3306"
         volumes:
