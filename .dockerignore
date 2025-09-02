@@ -7,6 +7,7 @@ node_modules/
 # -------------------------
 # Local environment & secrets
 # -------------------------
+.env.docker
 .env
 .env.*
 !.env.example   # Keep example env for reference
