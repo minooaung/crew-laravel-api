@@ -21,8 +21,8 @@ services:
         environment:
             MYSQL_DATABASE: min-lara-react-app
             MYSQL_USER: root
-            MYSQL_PASSWORD: ""
-            MYSQL_ROOT_PASSWORD: ""
+            MYSQL_PASSWORD: "Platinum01#amo"
+            MYSQL_ROOT_PASSWORD: "Platinum01#amo"
         ports:
             - "3306:3306"
         volumes:
