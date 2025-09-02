@@ -9,9 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: "Laravel REST API" # This tells GitHub to use that environment's secrets
+    environment: "Laravel REST API"
 
-    # CI-only environment variables
     env:
       APP_ENV: testing
       APP_DEBUG: true
@@ -57,15 +56,33 @@ jobs:
           extensions: mbstring, bcmath, pdo_mysql
           coverage: none
 
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-progress --no-suggest
 
-      - name: Prepare environment
+      - name: Generate Laravel .env
         run: |
-          cp .env.example .env
+          cat <<EOF > .env
+          APP_ENV=testing
+          APP_KEY=
+          APP_DEBUG=true
+          DB_CONNECTION=mysql
+          DB_HOST=${DB_HOST}
+          DB_PORT=${DB_PORT}
+          DB_DATABASE=${DB_DATABASE}
+          DB_USERNAME=${DB_USERNAME}
+          DB_PASSWORD=${DB_PASSWORD}
+          SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD}
+          SEED_EMPLOYEE_PASSWORD=${SEED_EMPLOYEE_PASSWORD}
+          EOF
           php artisan key:generate
 
-      # Wait for MySQL to be ready
       - name: Wait for MySQL
         run: |
           until mysqladmin ping -h"$DB_HOST" --silent; do
@@ -74,12 +91,11 @@ jobs:
           done
 
       - name: Run migrations
-        run: php artisan migrate --force
+        run: php artisan migrate --force --no-interaction
 
       - name: Run tests
-        run: php artisan test
+        run: php artisan test --no-interaction
 
-      # Build and push Docker image to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -88,8 +104,10 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/crew-laravel-api:latest .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/crew-laravel-api:latest \
+                       -t ${{ secrets.DOCKERHUB_USERNAME }}/crew-laravel-api:${{ github.sha }} .
 
       - name: Push Docker image
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/crew-laravel-api:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/crew-laravel-api:${{ github.sha }}
