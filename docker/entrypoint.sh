@@ -1,27 +1,18 @@
 #!/bin/bash
 set -e
-set -o pipefail
 
-DB_HOST=${DB_HOST:-db}
-DB_PORT=${DB_PORT:-3306}
-RETRIES=20
-
-echo "Waiting for database connection at $DB_HOST:$DB_PORT..."
-until mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USERNAME" -p"$DB_PASSWORD" -e "SELECT 1;" >/dev/null 2>&1
+# Wait until MySQL is ready
+echo "Waiting for database connection..."
+until nc -z -v -w30 db 3306
 do
-  RETRIES=$((RETRIES-1))
-  if [ $RETRIES -le 0 ]; then
-    echo "Database not reachable, exiting..."
-    exit 1
-  fi
-  echo "Waiting for MySQL... ($RETRIES retries left)"
+  echo "Waiting for MySQL..."
   sleep 5
 done
 
 echo "Database is up!"
 
-# Check if migrations table exists
-if ! php artisan migrate:status >/dev/null 2>&1; then
+# Check if 'users' table exists
+if ! php artisan tinker --execute="DB::table('users')->first()" >/dev/null 2>&1; then
   echo "Running migrations and seeders..."
   php artisan config:clear
   php artisan cache:clear
@@ -31,5 +22,5 @@ else
   echo "Database already migrated. Skipping."
 fi
 
-# Start Apache
+# Start PHP-FPM (or Apache depending on your image)
 exec docker-php-entrypoint "$@"
