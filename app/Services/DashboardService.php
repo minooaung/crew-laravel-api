@@ -85,11 +85,26 @@ class DashboardService
         return DB::table($table)
             ->select([
                 DB::raw('DATE_FORMAT(created_at, "%b") as month'),
-                DB::raw('COUNT(*) as count')
+                DB::raw('COUNT(*) as count'),
+                DB::raw('MIN(created_at) as first_date')
             ])
             ->where('created_at', '>=', $startDate)
             ->groupBy('month')
-            ->orderBy('created_at')
+            ->orderBy('first_date')
             ->get();
     }
+
+
+    // protected function getMonthlyData(string $table, Carbon $startDate): Collection
+    // {
+    //     return DB::table($table)
+    //         ->select([
+    //             DB::raw('DATE_FORMAT(created_at, "%b") as month'),
+    //             DB::raw('COUNT(*) as count')
+    //         ])
+    //         ->where('created_at', '>=', $startDate)
+    //         ->groupBy('month')
+    //         ->orderBy('created_at')
+    //         ->get();
+    // }
 } 
