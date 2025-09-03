@@ -9,11 +9,11 @@ services:
         depends_on:
             db:
                 condition: service_healthy
-        env_file:
-            - .env
         volumes:
             - ./storage:/var/www/html/storage
             - ./bootstrap/cache:/var/www/html/bootstrap/cache
+        env_file:
+            - .env
 
     db:
         image: mysql:8.0
