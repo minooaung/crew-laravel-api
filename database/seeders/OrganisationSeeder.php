@@ -19,9 +19,13 @@ class OrganisationSeeder extends Seeder
         // Create 15 organisations with unique names
         // This is a simple loop to create organisations
         for ($i = 1; $i <= 15; $i++) {
-            Organisation::create([
-                'name' => "Organisation {$i}",
-            ]);
+            // Organisation::create([
+            //     'name' => "Organisation {$i}",
+            // ]);
+            Organisation::firstOrCreate(
+                ['name' => "Organisation $i"],
+                [] // any extra fields if needed
+            );
         }
     }
 }
