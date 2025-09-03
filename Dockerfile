@@ -40,13 +40,11 @@ RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoload
     && php artisan config:clear \
     && php artisan cache:clear \
     && php artisan route:clear \
-    && php artisan view:clear \
     && php artisan clear-compiled \
     # Rebuild optimized caches for production
     && composer dump-autoload --optimize \
     && php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+    && php artisan route:cache
 
 # ---------- Runtime Stage ----------
 FROM php:8.2-apache AS runtime
