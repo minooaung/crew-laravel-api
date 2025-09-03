@@ -58,12 +58,5 @@ RUN chown -R www-data:www-data storage bootstrap/cache
 # Expose port 80
 EXPOSE 80
 
-# Copy custom entrypoint script
-COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
-# Use our entrypoint
-ENTRYPOINT ["entrypoint.sh"]
-
 # Start Apache
 CMD ["apache2-foreground"]
