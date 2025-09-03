@@ -21,13 +21,8 @@ COPY . .
 # Ensure Laravel directories exist
 RUN mkdir -p bootstrap/cache storage/framework/{views,sessions,cache}
 
-# Install dependencies **with dev packages** for local testing
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader \
-    && composer clear-cache \
-    && php artisan config:clear \
-    && php artisan cache:clear \
-    && php artisan route:clear \
-    && php artisan clear-compiled
+# Install dependencies with dev packages (for local/testing)
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 
 # ---------- Runtime Stage ----------
 FROM php:8.2-apache AS runtime
@@ -62,6 +57,13 @@ RUN chown -R www-data:www-data storage bootstrap/cache
 
 # Expose port 80
 EXPOSE 80
+
+# Copy custom entrypoint script
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Use our entrypoint
+ENTRYPOINT ["entrypoint.sh"]
 
 # Start Apache
 CMD ["apache2-foreground"]
