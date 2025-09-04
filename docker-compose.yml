@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
     app:
         image: 700800900/crew-laravel-api:latest
