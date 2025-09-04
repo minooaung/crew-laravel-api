@@ -38,17 +38,17 @@ services:
                 condition: service_healthy
         env_file:
             - .env
-        command: >
-            sh -c "
-                for i in `seq 1 10`; do
-                    php artisan migrate --seed --force && exit 0;
-                    echo 'Waiting for DB...';
-                    sleep 5;
-                done;
-                exit 1"
         volumes:
             - ./storage:/var/www/html/storage
             - ./bootstrap/cache:/var/www/html/bootstrap/cache
+        command: >
+            sh -c "
+            until php -r 'try { new PDO(\"mysql:host=${DB_HOST};port=${DB_PORT};dbname=${DB_DATABASE}\", \"${DB_USERNAME}\", \"${DB_PASSWORD}\"); exit(0);} catch (Exception $e) {exit(1);}'; do
+                echo 'Waiting for MySQL to be ready...';
+                sleep 5;
+            done &&
+            php artisan migrate --seed --force
+            "
 
 volumes:
     db_data:
