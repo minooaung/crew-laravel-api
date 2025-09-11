@@ -16,7 +16,7 @@ class Kernel extends HttpKernel
     protected $middleware = [
         // \App\Http\Middleware\TrustHosts::class,
         \App\Http\Middleware\TrustProxies::class,
-        \Illuminate\Http\Middleware\HandleCors::class,
+        \Illuminate\Http\Middleware\HandleCors::class, // CORS is active and configured in config/cors.php
         \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
@@ -47,7 +47,7 @@ class Kernel extends HttpKernel
             
             \Illuminate\Session\Middleware\StartSession::class, // *** Ensure this is included. Add this to set last_activity from login() and checking from InactiveSessionLogout           
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class, // *** Ensure this is included. Required for API with X-CSRF-TOKEN
-            \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
+            \Illuminate\Routing\Middleware\ThrottleRequests::class.':api', // For API rate limiting
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\InactiveSessionLogout::class, // *** Ensure this is included
         ],
@@ -70,7 +70,7 @@ class Kernel extends HttpKernel
         'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
         'precognitive' => \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class,
         'signed' => \App\Http\Middleware\ValidateSignature::class,
-        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class, // For API rate limiting
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         ////'admin' => \App\Http\Middleware\AdminMiddleware::class, // No longer use Custom AdminMiddleware for admin routes
     ];
