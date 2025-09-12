@@ -11,6 +11,7 @@ use Mockery;
 use InvalidArgumentException;
 
 /*
+Note: 
 using Laravel's TestCase instead of PHPUnit's directly because:
 It provides Laravel-specific testing features
 It sets up the Laravel application for testing
@@ -182,12 +183,25 @@ class UserServiceTest extends TestCase
         // Create the relationship in the pivot table
         $organisation->users()->attach($user->id, ['assigned_by' => $admin->id]);
 
+        // Verify the relationship was created
+        $this->assertDatabaseHas('organisation_user', [
+            'user_id' => $user->id,
+            'organisation_id' => $organisation->id,
+            'assigned_by' => $admin->id
+        ]);
+
         // Refresh the user model to ensure relationships are loaded
         $user = $user->fresh();
 
+        // Debug output
+        \Log::info('User relationships:', [
+            'organisation_users_count' => $user->organisationUsers()->count(),
+            'organisations_count' => $user->organisations()->count()
+        ]);
+
         // Assert & Act
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('User cannot be deleted due to existing relationships.');
+        $this->expectExceptionMessage('User cannot be deleted due to existing relationships with organisations.');
         
         $this->userService->delete($user);
     }
