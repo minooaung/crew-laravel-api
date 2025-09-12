@@ -64,8 +64,19 @@ class User extends Authenticatable
                     ->withTimestamps();
     }
 
+    /**
+     * Get organisations where this user is assigned as a member
+     */
     public function organisationUsers()
     {
-        return $this->hasMany(OrganisationUser::class, 'assigned_by'); // ✅ Define the relationship
+        return $this->hasMany(OrganisationUser::class, 'user_id');
+    }
+
+    /**
+     * Get organisations where this user is the assigner
+     */
+    public function assignedOrganisationUsers()
+    {
+        return $this->hasMany(OrganisationUser::class, 'assigned_by');
     }
 }

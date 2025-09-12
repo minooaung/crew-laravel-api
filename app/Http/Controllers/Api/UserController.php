@@ -6,14 +6,20 @@ use App\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
-
 use App\Http\Resources\UserResource;
-use Auth;
-use Hash;
+use App\Services\UserService;
 use Illuminate\Http\Request;
+use InvalidArgumentException;
 
 class UserController extends Controller
 {
+    protected UserService $userService;
+
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -21,14 +27,14 @@ class UserController extends Controller
     {
         $search = $request->query('search');
 
-        $users = User::select(['id', 'name', 'email', 'role', 'created_at']) // Fetch only needed columns
-            ->when(!empty($search), function ($query) use ($search) {  // Ensure search is not null
-            return $query->where('id', intval($search))
-                            ->orWhere('name', 'LIKE', "%{$search}%")
-                            ->orWhere('email', 'LIKE', "%{$search}%");
-        })
-        ->orderBy("id","desc")
-        ->paginate(10); // Use pagination to avoid loading too many users at once
+        $users = User::select(['id', 'name', 'email', 'role', 'created_at'])
+            ->when(!empty($search), function ($query) use ($search) {
+                return $query->where('id', intval($search))
+                    ->orWhere('name', 'LIKE', "%{$search}%")
+                    ->orWhere('email', 'LIKE', "%{$search}%");
+            })
+            ->orderBy("id", "desc")
+            ->paginate(10);
 
         return UserResource::collection($users);
     }
@@ -38,8 +44,7 @@ class UserController extends Controller
      */    
     public function show($id)
     {
-        $user = User::findOrFail($id); // Ensures Laravel handles the 404 exception automatically
-    
+        $user = User::findOrFail($id);
         return new UserResource($user);
     }
 
@@ -50,16 +55,12 @@ class UserController extends Controller
     {
         $this->authorize('create', User::class);
 
-        $data = $request->validated();
-        $data['password'] = Hash::make($data['password']);
-        $data['role'] = $data['role'] ?? 'EMPLOYEE';
-
-        if ($data['role'] === 'ADMIN' && User::where('role', 'ADMIN')->count() >= 5) {
-            return response()->json(['error' => 'Cannot create ADMIN user. System already has Maximum limit of 5 Admin Users.'], 403);
+        try {
+            $user = $this->userService->create($request->validated());
+            return new UserResource($user);
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 403);
         }
-
-        $user = User::create($data);
-        return new UserResource($user);
     }       
 
     /**
@@ -67,64 +68,31 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, $id)
     {
-        \Log::info("Updating a user with ID: " . $id);
-
-        // Retrieve user or return 404 if not found
         $user = User::findOrFail($id);
-
-        // Check authorization (prevent unauthorized updates)
         $this->authorize('update', $user);
 
-        // Validate the input data
-        $data = $request->validated();
-
-        // Handle password updates securely
-        if (isset($data['password'])) {
-            $data['password'] = Hash::make($data['password']);
+        try {
+            $updatedUser = $this->userService->update($user, $request->validated());
+            return new UserResource($updatedUser);
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 403);
         }
-
-        // Attempt user update
-        $user->update($data);
-
-        \Log::info("User updated successfully: " . $user->name);
-
-        return new UserResource($user);
-        // return response()->json([
-        //     'message' => 'User updated successfully',
-        //     'user' => new UserResource($user),
-        // ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-
     public function destroy($id)
     {
-        \Log::info("Attempting to delete user ID: " . $id);
-
-        // Retrieve user or return 404 if not found
         $user = User::findOrFail($id);
-
-        // Enforce RBAC policy-based authorization
         $this->authorize('delete', $user);
 
-        // Check for potential foreign key constraints
-        if ($user->organisationUsers()->count() > 0) {
-            \Log::warning("User ID: {$id} has associated records and cannot be deleted.");
-            return response()->json([
-                'error' => 'User cannot be deleted due to existing relationships.'
-            ], 409); // Use 409 Conflict when deletion is blocked by DB constraints
+        try {
+            $this->userService->delete($user);
+            return response()->json(['message' => 'User deleted successfully']);
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 403);
         }
-
-        // Attempt user deletion
-        $user->delete();
-
-        \Log::info("User ID {$id} successfully deleted.");
-
-        return response()->json([
-            'message' => 'User deleted successfully'
-        ], 200);
     }    
 
     /**
